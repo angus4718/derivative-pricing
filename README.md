@@ -71,8 +71,8 @@ This project aims to optimize the coupon rate of a **step-up autocallable note**
 ### **Installation**
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/step-up-autocallable-note.git
-   cd step-up-autocallable-note
+   git clone https://github.com/angus4718/derivative_pricing.git
+   cd derivative_pricing
    ```
 2. Install the required libraries:
    ```bash
