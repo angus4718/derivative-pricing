@@ -175,10 +175,6 @@ This project aims to optimize the coupon rate of a **step-up autocallable note**
 
 This project successfully demonstrates how to determine the coupon rate of a **step-up autocallable note** using advanced financial modeling techniques. By incorporating **Monte Carlo simulation**, **local volatility modeling**, and the **bisection method**, the model provides a robust framework for pricing complex financial instruments.
 
----
-
-## **Author**
-- Chun Hin (Angus) CHEUNG
 
 ---
 
