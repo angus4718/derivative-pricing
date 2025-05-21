@@ -71,8 +71,8 @@ This project aims to optimize the coupon rate of a **step-up autocallable note**
 ### **Installation**
 1. Clone the repository:
    ```bash
-   git clone https://github.com/angus4718/derivative_pricing.git
-   cd derivative_pricing
+   git clone https://github.com/angus4718/derivative-pricing.git
+   cd derivative-pricing
    ```
 2. Install the required libraries:
    ```bash
@@ -115,7 +115,7 @@ This project aims to optimize the coupon rate of a **step-up autocallable note**
 2. **Run the Simulation**:
    Execute the main script:
    ```bash
-   python worlds_simulator.py
+   python main.py
    ```
 
 3. **Output**:
@@ -169,15 +169,3 @@ This project aims to optimize the coupon rate of a **step-up autocallable note**
   - **Indices**: Replace `HSCEI`, `Kospi 200`, and `S&P 500` with new underlying assets.
 - Input new implied volatility or risk-free rate data for different markets.
 
----
-
-## **Conclusion**
-
-This project successfully demonstrates how to determine the coupon rate of a **step-up autocallable note** using advanced financial modeling techniques. By incorporating **Monte Carlo simulation**, **local volatility modeling**, and the **bisection method**, the model provides a robust framework for pricing complex financial instruments.
-
-
----
-
-## **License**
-
-This project is licensed under the MIT License.
