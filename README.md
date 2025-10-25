@@ -58,29 +58,6 @@ This project aims to optimize the coupon rate of a **step-up autocallable note**
 
 ---
 
-## **Setup**
-
-### **Dependencies**
-- Python 3.8+
-- Required libraries:
-  - `numpy`
-  - `scipy`
-  - `pandas`
-  - `matplotlib`
-
-### **Installation**
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/angus4718/derivative-pricing.git
-   cd derivative-pricing
-   ```
-2. Install the required libraries:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
----
-
 ## **How It Works**
 
 ### **1. Risk-Free Rates and Dividend Yields**
@@ -139,33 +116,4 @@ This project aims to optimize the coupon rate of a **step-up autocallable note**
   - Implements Monte Carlo simulation for index price paths.
   - Tracks knock-in/knock-out events and calculates note payoffs.
   - Uses the **bisection method** to determine the optimal coupon rate.
-
-### **Workflow**
-1. **Risk-Free Rates and Dividend Yields**:
-   - Compute forward rates using `Div_Rf`.
-2. **Volatility Surface**:
-   - Load implied volatility data and fit local volatility surfaces using `Vol_Calculation`.
-3. **Monte Carlo Simulation**:
-   - Simulate price paths and calculate note price using `MonteCarlo`.
-
----
-
-## **Outputs**
-
-- **Optimal Coupon Rate**: 13.37% for a note price of 98% of the issue price.
-- **Volatility Surfaces**:
-  - Smooth, fitted curves for implied and local volatilities.
-- **Simulated Note Price**:
-  - Average payoff across 1000 simulations.
-
----
-
-## **Customization**
-
-- Modify the following parameters in the script:
-  - **Time to maturity**: `T`
-  - **Number of simulations**: `n_sim`
-  - **Target price**: `price`
-  - **Indices**: Replace `HSCEI`, `Kospi 200`, and `S&P 500` with new underlying assets.
-- Input new implied volatility or risk-free rate data for different markets.
 
