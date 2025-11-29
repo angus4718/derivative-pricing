@@ -1,8 +1,9 @@
 from MonteCarlo import MonteCarlo
-from Div_Rf import Div_Rf
+from div_rfr import Div_Rf
+
 
 def main():
-    #Configurations
+    # Configurations
     T = 3
     dt = 1 / 252
     n_sim = 1000

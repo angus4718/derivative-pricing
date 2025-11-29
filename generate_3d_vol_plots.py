@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import cm
-from Vol_Calculation import Vol_Calculation
+from vol_calculation import Vol_Calculation
 import os
 
 # Load data and calculate volatility
@@ -13,29 +13,38 @@ today_date = pd.Timestamp("2023-11-17")
 vol_calc = Vol_Calculation(spot_prices, T, dt, today_date)
 
 # Load implied volatility data and exercise dates
-vol_calc.load_data('Data4150.xlsx', ['HSCEI', 'KOSPI2', 'SPX'])
-implied_vol_dfs, exercise_dates = vol_calc.excel_to_implied_vol_dfs('Data4150.xlsx', ['HSCEI', 'KOSPI2', 'SPX'])
+vol_calc.load_data("data/vol_data_values.xlsx", ["HSCEI", "KOSPI2", "SPX"])
+implied_vol_dfs, exercise_dates = vol_calc.excel_to_implied_vol_dfs(
+    "data/vol_data_values.xlsx", ["HSCEI", "KOSPI2", "SPX"]
+)
 
 # Fit parameters for implied volatility curves
 params_dfs = vol_calc.implied_vol_curve_fitting(implied_vol_dfs)
 
+
 # Load precomputed sigma values
 def load_precomputed_sigma():
-    if os.path.exists('sigma.npy'):
+    if os.path.exists("sigma.npy"):
         try:
-            sigma_values = np.load('sigma.npy')
+            sigma_values = np.load("sigma.npy")
             print("Successfully loaded precomputed sigma values.")
             return sigma_values
         except Exception as e:
             print(f"Failed to load precomputed sigma values: {e}")
             raise
     else:
-        raise FileNotFoundError("sigma.npy file not found. Please precompute sigma values first.")
+        raise FileNotFoundError(
+            "sigma.npy file not found. Please precompute sigma values first."
+        )
+
 
 sigma_values = load_precomputed_sigma()
 
+
 # Function to generate 3D plots
-def plot_3d_volatility(x_axis, y_axis, z_axis, title, xlabel, ylabel, zlabel, cmap=cm.viridis):
+def plot_3d_volatility(
+    x_axis, y_axis, z_axis, title, xlabel, ylabel, zlabel, cmap=cm.viridis
+):
     """
     Create a 3D plot for volatility data.
 
@@ -53,18 +62,22 @@ def plot_3d_volatility(x_axis, y_axis, z_axis, title, xlabel, ylabel, zlabel, cm
         None
     """
     # Ensure X, Y, and Z have matching shapes
-    X, Y = np.meshgrid(x_axis, y_axis)  # Create grid from x_axis (strikes) and y_axis (maturities)
+    X, Y = np.meshgrid(
+        x_axis, y_axis
+    )  # Create grid from x_axis (strikes) and y_axis (maturities)
     Z = z_axis
 
     if Z.shape != X.shape:
-        raise ValueError(f"Shape mismatch: X/Y shape is {X.shape}, Z shape is {Z.shape}")
+        raise ValueError(
+            f"Shape mismatch: X/Y shape is {X.shape}, Z shape is {Z.shape}"
+        )
 
     # Create figure and 3D plot
     fig = plt.figure(figsize=(10, 6))
-    ax = fig.add_subplot(111, projection='3d')
+    ax = fig.add_subplot(111, projection="3d")
 
     # Create the 3D surface plot
-    surf = ax.plot_surface(X, Y, Z, cmap=cmap, edgecolor='k', alpha=0.8)
+    surf = ax.plot_surface(X, Y, Z, cmap=cmap, edgecolor="k", alpha=0.8)
 
     # Add labels, title, and color bar
     ax.set_title(title, fontsize=14)
@@ -75,13 +88,16 @@ def plot_3d_volatility(x_axis, y_axis, z_axis, title, xlabel, ylabel, zlabel, cm
 
     plt.show()
 
+
 # Generate 3D plots for each underlying
-underlying_names = ['HSCEI', 'KOSPI2', 'SPX']
+underlying_names = ["HSCEI", "KOSPI2", "SPX"]
 for index_no, name in enumerate(underlying_names):
     # Generate implied volatility data
     implied_vol_df = implied_vol_dfs[index_no]
     strikes = implied_vol_df.index.values
-    maturities = np.array([vol_calc.daysinbetween3(pd.Timestamp(date)) for date in implied_vol_df.columns])
+    maturities = np.array(
+        [vol_calc.daysinbetween3(pd.Timestamp(date)) for date in implied_vol_df.columns]
+    )
     implied_vol_data = implied_vol_df.values
 
     # Plot implied volatility
@@ -97,7 +113,9 @@ for index_no, name in enumerate(underlying_names):
     )
 
     # Generate local volatility data from precomputed sigmas
-    local_vol_data = sigma_values[:len(maturities), :len(strikes), index_no]  # Extract local vol for the index
+    local_vol_data = sigma_values[
+        : len(maturities), : len(strikes), index_no
+    ]  # Extract local vol for the index
 
     # Check if transpose is needed
     if local_vol_data.shape != (len(maturities), len(strikes)):
