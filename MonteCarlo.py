@@ -1,19 +1,23 @@
 import numpy as np
 import math
-from Vol_Calculation import Vol_Calculation
+from vol_calculation import Vol_Calculation
 import datetime as datetime
 import os
+
 np.random.seed(42)
 
 T = 3
 dt = 1 / 252
 n_sim = 1000
 spot_prices = [5974.47, 331.63, 4513.91]
-today_date=datetime.datetime(2023, 11, 17)
+today_date = datetime.datetime(2023, 11, 17)
 vol_calc = Vol_Calculation(spot_prices, T, dt, today_date)
-vol_calc.load_data('Data4150.xlsx', ['HSCEI', 'KOSPI2', 'SPX'])
-implied_vol_dfs, exercise_dates = vol_calc.excel_to_implied_vol_dfs('Data4150.xlsx', ['HSCEI', 'KOSPI2', 'SPX'])
+vol_calc.load_data("data/vol_data_values.xlsx", ["HSCEI", "KOSPI2", "SPX"])
+implied_vol_dfs, exercise_dates = vol_calc.excel_to_implied_vol_dfs(
+    "data/vol_data_values.xlsx", ["HSCEI", "KOSPI2", "SPX"]
+)
 params_dfs = vol_calc.implied_vol_curve_fitting(implied_vol_dfs)
+
 
 class MonteCarlo:
     def __init__(self, r, r_forward, d_forward, T, dt, n_sim):
@@ -25,9 +29,9 @@ class MonteCarlo:
         self.obs_duration = int(1 / self.dt / 2)  # if dt is daily, 252 / 2 = 126
         self.note_denomination = 10000
         self.min_coupon = 0.0001
-        self.cor_matrix = np.array([[1, 0.551, 0.111],
-                                    [0.551, 1, 0.191],
-                                    [0.111, 0.191, 1]])
+        self.cor_matrix = np.array(
+            [[1, 0.551, 0.111], [0.551, 1, 0.191], [0.111, 0.191, 1]]
+        )
         self.r_forward = r_forward
         self.d_forward = d_forward
         self.r = r
@@ -36,8 +40,12 @@ class MonteCarlo:
         self.spot_prices = [5974.47, 331.63, 4513.91]
         self.today_date = datetime.datetime(2023, 11, 17)
         self.vol_calc = Vol_Calculation(spot_prices, T, dt, today_date)
-        self.vol_calc.load_data('Data4150.xlsx', ['HSCEI', 'KOSPI2', 'SPX'])
-        self.implied_vol_dfs, self.exercise_dates = self.vol_calc.excel_to_implied_vol_dfs('Data4150.xlsx', ['HSCEI', 'KOSPI2', 'SPX'])
+        self.vol_calc.load_data("data/vol_data_values.xlsx", ["HSCEI", "KOSPI2", "SPX"])
+        self.implied_vol_dfs, self.exercise_dates = (
+            self.vol_calc.excel_to_implied_vol_dfs(
+                "data/vol_data_values.xlsx", ["HSCEI", "KOSPI2", "SPX"]
+            )
+        )
         self.params_dfs = vol_calc.implied_vol_curve_fitting(self.implied_vol_dfs)
 
         # Pre-compute sigma values
@@ -53,10 +61,10 @@ class MonteCarlo:
 
     def precompute_sigma(self):
         # Check if the file exists
-        if os.path.exists('sigma.npy'):
+        if os.path.exists("sigma.npy"):
             try:
                 # Try to load pre-computed sigma
-                return np.load('sigma.npy')
+                return np.load("sigma.npy")
             except Exception as e:
                 # If loading fails for any reason, print the error and continue to compute sigma
                 print(f"Failed to load pre-computed Sigma values: {e}")
@@ -68,19 +76,23 @@ class MonteCarlo:
         for i, x in enumerate(self.x_values):
             for day in range(n_days):
                 for index_no in range(n_indices):
-                    sigma_values[i][day][index_no] = self.vol_calc.interpolated_local_vol(x, index_no, day,
-                                                                                          self.params_dfs)
+                    sigma_values[i][day][index_no] = (
+                        self.vol_calc.interpolated_local_vol(
+                            x, index_no, day, self.params_dfs
+                        )
+                    )
 
-        print('Precompute Sigma Done')
+        print("Precompute Sigma Done")
 
         # Save computed sigma values
         try:
-            np.save('sigma.npy', sigma_values)
-            print('Saved Sigma values to file.')
+            np.save("sigma.npy", sigma_values)
+            print("Saved Sigma values to file.")
         except Exception as e:
             print(f"Failed to save pre-computed Sigma values: {e}")
 
         return sigma_values
+
     def price(self, coupon):
         L = np.linalg.cholesky(self.cor_matrix)
         W_1_half = self.W_1_half
@@ -108,39 +120,74 @@ class MonteCarlo:
                 sigma.append(self.get_sigma(S_2[i][j - 1], j - 1, 0))
                 sigma.append(self.get_sigma(S_3[i][j - 1], j - 1, 0))
                 S_1[i][j] = S_1[i][j - 1] * math.exp(
-                    (self.r_forward[0][j - 1] - self.d_forward[0][j - 1] - 0.5 * sigma[0] ** 2) * self.dt + sigma[0] * Z_1[i][
-                        j - 1] * math.sqrt(self.dt))
+                    (
+                        self.r_forward[0][j - 1]
+                        - self.d_forward[0][j - 1]
+                        - 0.5 * sigma[0] ** 2
+                    )
+                    * self.dt
+                    + sigma[0] * Z_1[i][j - 1] * math.sqrt(self.dt)
+                )
                 S_2[i][j] = S_2[i][j - 1] * math.exp(
-                    (self.r_forward[1][j - 1] - self.d_forward[1][j - 1] - 0.5 * sigma[1] ** 2) * self.dt + sigma[1] * Z_2[i][
-                        j - 1] * math.sqrt(self.dt))
+                    (
+                        self.r_forward[1][j - 1]
+                        - self.d_forward[1][j - 1]
+                        - 0.5 * sigma[1] ** 2
+                    )
+                    * self.dt
+                    + sigma[1] * Z_2[i][j - 1] * math.sqrt(self.dt)
+                )
                 S_3[i][j] = S_3[i][j - 1] * math.exp(
-                    (self.r_forward[2][j - 1] - self.d_forward[2][j - 1] - 0.5 * sigma[2] ** 2) * self.dt + sigma[2] * Z_3[i][
-                        j - 1] * math.sqrt(self.dt))
+                    (
+                        self.r_forward[2][j - 1]
+                        - self.d_forward[2][j - 1]
+                        - 0.5 * sigma[2] ** 2
+                    )
+                    * self.dt
+                    + sigma[2] * Z_3[i][j - 1] * math.sqrt(self.dt)
+                )
 
         # Observation
-        obsS_1 = S_1[:, self.obs_duration::self.obs_duration]
-        obsS_2 = S_2[:, self.obs_duration::self.obs_duration]
-        obsS_3 = S_3[:, self.obs_duration::self.obs_duration]
+        obsS_1 = S_1[:, self.obs_duration :: self.obs_duration]
+        obsS_2 = S_2[:, self.obs_duration :: self.obs_duration]
+        obsS_3 = S_3[:, self.obs_duration :: self.obs_duration]
         laggard = np.minimum.reduce((obsS_1, obsS_2, obsS_3))
         knock_in = [min(i) <= 0.5 for i in laggard]
-        obs_dates = np.linspace(0.5, self.T, int(self.T / 0.5))  # Semi-annual observation dates
-        discount_factors = np.array([np.exp(-self.r[2][int(self.n_step * obs_date / 3) - 1] * obs_date) for obs_date in obs_dates])  # Discount factors for each observation date
+        obs_dates = np.linspace(
+            0.5, self.T, int(self.T / 0.5)
+        )  # Semi-annual observation dates
+        discount_factors = np.array(
+            [
+                np.exp(-self.r[2][int(self.n_step * obs_date / 3) - 1] * obs_date)
+                for obs_date in obs_dates
+            ]
+        )  # Discount factors for each observation date
         payoffs = []
         for i in range(self.n_sim):
             total_pay = 0
             for j, discount_factor in enumerate(discount_factors):
                 # No knock-out
                 if laggard[i][j] < 1:
-                    total_pay += discount_factor * self.note_denomination * self.min_coupon
+                    total_pay += (
+                        discount_factor * self.note_denomination * self.min_coupon
+                    )
                 # Knock-out event
                 else:
-                    total_pay += discount_factor * self.note_denomination * (1 + (j + 1) * coupon)
+                    total_pay += (
+                        discount_factor
+                        * self.note_denomination
+                        * (1 + (j + 1) * coupon)
+                    )
                     break  # Exit the loop as the note is redeemed early
 
                 # Final redemption (if no knock-out occurs before maturity)
                 if j == len(discount_factors) - 1:
                     if knock_in[i]:
-                        total_pay += discount_factor * self.note_denomination * min(1, laggard[i][j])
+                        total_pay += (
+                            discount_factor
+                            * self.note_denomination
+                            * min(1, laggard[i][j])
+                        )
                     else:
                         total_pay += discount_factor * self.note_denomination
 
