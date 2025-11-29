@@ -16,7 +16,7 @@ class Div_Rf:
         days = np.busday_count(self.base_date, y.date())
         return days
 
-    def CubicSplineInterpolationDYRFR(self, time_step, a, b):
+    def CubicSplineInterpolation(self, time_step, a, b):
         first_value = b[0]
         last_value = b[-1]
         cs = interp1d(
@@ -35,7 +35,7 @@ class Div_Rf:
     def get_dividend(self, index):
         div, divdate = self.get_div_divdate(index)
         return [
-            self.CubicSplineInterpolationDYRFR(i, divdate, div)
+            self.CubicSplineInterpolation(i, divdate, div)
             for i in range(1, self.n_step + 1)
         ]
 
@@ -47,7 +47,7 @@ class Div_Rf:
         ]
 
     def get_r_rdate(self, country):
-        rows = self.rf_arr.shape[0]
+        # Determine columns (keep previous fixed mapping)
         if country == "KR":
             date_col, rate_col = 4, 5
         elif country == "US":
@@ -57,14 +57,27 @@ class Div_Rf:
         else:
             raise ValueError(f"Unsupported country code: {country}")
 
-        rates = [self.rf_arr[x][rate_col] / 100 for x in range(0, rows)]
-        rdates = [self.rf_arr[x][date_col] for x in range(0, rows)]
+        dseries = self.rf_df.iloc[:, date_col]
+        rseries = self.rf_df.iloc[:, rate_col]
+        rconv = pd.to_numeric(rseries, errors="coerce")
+        day_vals = pd.to_numeric(dseries, errors="coerce").astype("Float64")
+        df_pairs = pd.DataFrame({"day": day_vals, "rate": rconv})
+        df_pairs = df_pairs.dropna(subset=["day", "rate"]).reset_index(drop=True)
+        df_pairs["day"] = df_pairs["day"].astype(int)
+
+        # Aggregate duplicate days (if multiple rows have same date) by averaging rates
+        df_agg = df_pairs.groupby("day", as_index=False).agg({"rate": "mean"})
+
+        # Convert rates from percent to decimal
+        rates = (df_agg["rate"].astype(float) / 100.0).tolist()
+        rdates = df_agg["day"].astype(int).tolist()
+
         return rates, rdates
 
     def get_rf(self, country):
         r, rdate = self.get_r_rdate(country)
         return [
-            self.CubicSplineInterpolationDYRFR(i, rdate, r)
+            self.CubicSplineInterpolation(i, rdate, r)
             for i in range(1, self.n_step + 1)
         ]
 
